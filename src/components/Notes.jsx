@@ -32,7 +32,7 @@ function Notes() {
     if (!trimmedTitle || !trimmedBody) return;
 
     const newNote = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       title: trimmedTitle,
       body: trimmedBody
     };
@@ -110,6 +110,10 @@ function Notes() {
           </li>
         ))}
         </ul>
+
+        {notes.length === 0 && (
+          <p className="text-lg text-[#949494]">No notes found</p>
+        )}
       </section>
     </div>
   )
