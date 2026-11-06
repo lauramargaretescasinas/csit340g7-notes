@@ -20,6 +20,8 @@ function Notes() {
     body: ""
   });
 
+  const [search, setSearch] = useState("");
+
   function handleChange(e) {
     setForm({...form, [e.target.name]: e.target.value});
   }
@@ -45,6 +47,10 @@ function Notes() {
     setNotes(notes.filter((note) => note.id !== id));
   }
 
+  const filteredNotes = notes.filter((note) =>
+    note.title.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="grid min-h-screen grid-cols-[420px_1fr]">
         <aside className="sticky top-0 flex h-screen flex-col gap-5 bg-white px-8 py-9 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]">
@@ -57,6 +63,8 @@ function Notes() {
           <input
             placeholder="Search by title"
             className="h-[52px] w-full border border-[#e6e6e6] px-4 text-lg outline-none placeholder:text-black/40 placeholder:italic focus:border-[#cf7d7d]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
@@ -93,7 +101,7 @@ function Notes() {
         <h2 className="mb-6 text-3xl">All notes</h2>
 
         <ul className="grid grid-cols-3 items-start gap-5">
-        {notes.map((note) => (
+        {filteredNotes.map((note) => (
             <li 
             key={note.id} className="relative min-h-32 bg-white px-6 py-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]">
             <NoteCard
@@ -111,7 +119,7 @@ function Notes() {
         ))}
         </ul>
 
-        {notes.length === 0 && (
+        {filteredNotes.length === 0 && (
           <p className="text-lg text-[#949494]">No notes found</p>
         )}
       </section>
