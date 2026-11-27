@@ -3,9 +3,12 @@ import NoteCard from './NoteCard.jsx'
 
 const API_URL = import.meta.env.VITE_API_URL
 
-function Notes() {  
-  
+function Notes() {
   const [notes, setNotes] = useState([])
+
+  const [loading, setLoading] = useState(true)
+
+  const [error, setError] = useState('')
 
   const [form, setForm] = useState(() => {
     const saved = localStorage.getItem('draft')
@@ -17,13 +20,27 @@ function Notes() {
   const titleRef = useRef(null);
 
   useEffect(() => {
+    let ignore = false
+
     async function loadNotes() {
-      const res = await fetch(API_URL + '/notes')
-      const data = await res.json()
-      setNotes(data)
+      try {
+        const res = await fetch(API_URL + '/notes')
+        if (!res.ok) {
+          throw new Error('The server answered ' + res.status)
+        }
+        const data = await res.json()
+        if (!ignore) setNotes(data)
+      } catch (err) {
+        if (!ignore) setError(err.message)
+      }
+      if (!ignore) setLoading(false)
     }
 
     loadNotes()
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
   useEffect(() => {
@@ -67,7 +84,7 @@ function Notes() {
 
   return (
     <div className="grid min-h-screen grid-cols-[420px_1fr]">
-        <aside className="sticky top-0 flex h-screen flex-col gap-5 bg-white px-8 py-9 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]">
+      <aside className="sticky top-0 flex h-screen flex-col gap-5 bg-white px-8 py-9 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]">
         <h1 className="text-[72px] leading-none font-extralight text-[#b83f45]">
           notes
         </h1>
@@ -107,29 +124,31 @@ function Notes() {
           >
             Add note
           </button>
-
         </form>
-
       </aside>
 
       <section className="px-12 py-11">
         <h2 className="mb-6 text-3xl">All notes</h2>
 
         <ul className="grid grid-cols-3 items-start gap-5">
-        {filteredNotes.map((note) => (
-            <li 
-            key={note.id} className="relative min-h-32 bg-white px-6 py-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]">
-            <NoteCard
-              id={note.id}
-              title={note.title}
-              body={note.body}
-              onDelete={handleDelete}
-            />
-          </li>
-        ))}
+          {filteredNotes.map((note) => (
+            <li
+              key={note.id}
+              className="relative min-h-32 bg-white px-6 py-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]"
+            >
+              <NoteCard
+                id={note.id}
+                title={note.title}
+                body={note.body}
+                onDelete={handleDelete}
+              />
+            </li>
+          ))}
         </ul>
 
-        {filteredNotes.length === 0 && (
+        {loading && <p className="text-lg text-[#949494]">Loading notes...</p>}
+        {error && <p className="text-lg text-[#b83f45]">{error}</p>}
+        {!loading && !error && filteredNotes.length === 0 && (
           <p className="text-lg text-[#949494]">No notes found</p>
         )}
       </section>
