@@ -54,22 +54,29 @@ function Notes() {
     setForm({...form, [e.target.name]: e.target.value});
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     const trimmedTitle = form.title.trim();
     const trimmedBody = form.body.trim();
     if (!trimmedTitle || !trimmedBody) return;
 
-    const newNote = {
-      id: crypto.randomUUID(),
-      title: trimmedTitle,
-      body: trimmedBody
-    };
-
-    setNotes([...notes, newNote]);
-    setForm({ title: "", body: "" });
-    titleRef.current.focus();
+    try {
+      const res = await fetch(API_URL + '/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: trimmedTitle, body: trimmedBody }),
+      });
+      if (!res.ok) {
+        throw new Error('The server answered ' + res.status);
+      }
+      const newNote = await res.json();
+      setNotes([...notes, newNote]);
+      setForm({ title: "", body: "" });
+      titleRef.current.focus();
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   const handleDelete = useCallback((id) => {
